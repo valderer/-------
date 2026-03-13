@@ -178,7 +178,7 @@ function createAppElement(app, containerType) {
                         loadRightPanel(app.id, app.title);
                         updateLeftActiveState(app.id);
                     }
-                }, 200); // 增加200ms延迟，防止快速滑动时频繁加载
+                }, 100); // 增加100ms延迟，防止快速滑动时频繁加载
             });
             appEl.addEventListener('mouseleave', () => {
                 clearTimeout(hoverTimer); // 如果鼠标快速移出，则不触发加载
