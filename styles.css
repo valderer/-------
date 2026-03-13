@@ -133,7 +133,7 @@ body {
     width: 200px;
     background: var(--panel-left-bg);
     border-right: 0.5px solid var(--panel-border);
-    padding: 16px 10px;
+    padding: 0px 0px 10px 10px;
     transition: background 0.5s ease;
 }
 
@@ -186,6 +186,7 @@ body {
 
 .app-icon {
     height: 46px;
+    flex-shrink: 0; 
     display: flex; align-items: center; text-decoration: none;
     cursor: pointer; user-select: none; position: relative;
     border-radius: 8px; transition: background-color 0.15s ease;
@@ -214,6 +215,7 @@ body {
     margin-bottom: 6px; /* 给固定导航和滚动区留点间距 */
     border-bottom: 1px solid var(--panel-border);
     padding-bottom: 6px;
+    padding-right: 14px;
 }
 
 /* 右侧层 */
@@ -308,7 +310,7 @@ body {
 /* 小时、分钟、秒之间的间距隔离 */
 .scifi-digit:nth-child(2),
 .scifi-digit:nth-child(4) {
-    margin-right: 20px;
+    margin-right: 25px;
 }
 
 .scifi-block {
@@ -328,7 +330,7 @@ body {
     /* 激活后悬浮重组到位 */
     transform: scale(1) translateY(0) rotateX(0deg) rotateY(0deg);
     /* 移除了导致眩晕的发光及厚重阴影，变为极致扁平化极简，同时加入了微弱的同色阴影增加科技感 */
-    box-shadow: 0 0 8px var(--orb-1);
+    /* box-shadow: 0 0 2px var(--orb-1); */
 }
 
 .search-box-wrapper {
