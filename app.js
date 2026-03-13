@@ -906,35 +906,173 @@ if (searchBoxWrapper && searchInput) {
     });
 }
 
-// 自定义搜索引擎下拉框逻辑
+// 初始化和渲染搜索引擎列表
+const defaultEngines = [
+    { name: 'Google', url: 'https://www.google.com/search?q=', icon: 'icons/google.ico' },
+    { name: 'Bing', url: 'https://www.bing.com/search?q=', icon: 'icons/bing.ico' },
+    { name: 'Baidu', url: 'https://www.baidu.com/s?wd=', icon: 'icons/baidu.ico' },
+    { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=', icon: 'icons/duckduckgo.ico' },
+    { name: 'Bilibili', url: 'https://search.bilibili.com/all?keyword=', icon: 'icons/bilibili.ico' }
+];
+
+let searchEngines = JSON.parse(localStorage.getItem('apple_search_engines')) || defaultEngines;
+let currentEngineIndex = parseInt(localStorage.getItem('apple_current_engine') || '0', 10);
+if (currentEngineIndex >= searchEngines.length) currentEngineIndex = 0;
+
+function renderEngineDropdown() {
+    if (!engineDropdown) return;
+    engineDropdown.innerHTML = '';
+
+    searchEngines.forEach((engine, index) => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item' + (index === currentEngineIndex ? ' active' : '');
+        item.dataset.index = index;
+        item.dataset.url = engine.url;
+        item.dataset.icon = engine.icon;
+        
+        // 拖拽相关
+        item.draggable = true;
+        
+        item.innerHTML = `
+            <img src="${engine.icon}" alt="${engine.name}">
+            <span>${engine.name}</span>
+            <div class="engine-delete-btn" title="删除" data-index="${index}">×</div>
+        `;
+
+        // 拖拽事件监听
+        item.addEventListener('dragstart', (e) => {
+            if (!isEditMode) { e.preventDefault(); return; }
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('engine-index', index);
+            setTimeout(() => item.classList.add('dragging'), 0);
+        });
+        
+        item.addEventListener('dragend', () => {
+            item.classList.remove('dragging');
+            document.querySelectorAll('.dropdown-item').forEach(el => el.style.borderTop = '');
+        });
+        
+        item.addEventListener('dragover', (e) => {
+            if (!isEditMode) return;
+            e.preventDefault();
+            item.style.borderTop = '2px solid var(--btn-primary)';
+        });
+        
+        item.addEventListener('dragleave', () => {
+            if (!isEditMode) return;
+            item.style.borderTop = '';
+        });
+        
+        item.addEventListener('drop', (e) => {
+            if (!isEditMode) return;
+            e.preventDefault();
+            item.style.borderTop = '';
+            const dragIndex = parseInt(e.dataTransfer.getData('engine-index'), 10);
+            const dropIndex = index;
+            if (dragIndex === dropIndex) return;
+
+            // 调整顺序数组
+            const draggedEngine = searchEngines.splice(dragIndex, 1)[0];
+            searchEngines.splice(dropIndex, 0, draggedEngine);
+            
+            // 如果你移动的就是当前选中的项，需要重新定位下标
+            if (currentEngineIndex === dragIndex) {
+                currentEngineIndex = dropIndex;
+            } else if (currentEngineIndex > dragIndex && currentEngineIndex <= dropIndex) {
+                currentEngineIndex--;
+            } else if (currentEngineIndex < dragIndex && currentEngineIndex >= dropIndex) {
+                currentEngineIndex++;
+            }
+            
+            saveEngines();
+            renderEngineDropdown();
+            updateCurrentEngineUI();
+            
+            // 保持下拉框在编辑模式托拽后仍然打开
+            engineDropdown.classList.add('active');
+        });
+
+        // 点击切换引擎
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (e.target.classList.contains('engine-delete-btn')) {
+                // 删除逻辑
+                const delIdx = parseInt(e.target.dataset.index, 10);
+                if (searchEngines.length <= 1) {
+                    alert('请至少保留一个搜索引擎！');
+                    return;
+                }
+                if (confirm(`确定要删除 ${searchEngines[delIdx].name} 吗？`)) {
+                    searchEngines.splice(delIdx, 1);
+                    if (currentEngineIndex === delIdx) {
+                        currentEngineIndex = 0;
+                    } else if (currentEngineIndex > delIdx) {
+                        currentEngineIndex--;
+                    }
+                    saveEngines();
+                    renderEngineDropdown();
+                    updateCurrentEngineUI();
+                    engineDropdown.classList.add('active'); // 删完也开着
+                }
+                return;
+            }
+
+            if (isEditMode) {
+                // 编辑模式下点击直接进行编辑
+                openEngineModal(index);
+                return;
+            }
+
+            // 非删除，则应用选中
+            currentEngineIndex = index;
+            saveEngines();
+            updateCurrentEngineUI();
+            
+            // 重新渲染高亮状态
+            engineDropdown.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+
+            if (!isEditMode) {
+                engineDropdown.classList.remove('active');
+                searchInput.focus();
+            }
+        });
+
+        engineDropdown.appendChild(item);
+    });
+
+    // 内部额外附着一个新增按钮
+    const addBtn = document.createElement('div');
+    addBtn.className = 'dropdown-add-btn';
+    addBtn.textContent = '+ 新增引擎';
+    addBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openEngineModal();
+    });
+    engineDropdown.appendChild(addBtn);
+}
+
+function updateCurrentEngineUI() {
+    if (searchEngines.length === 0) return;
+    const engine = searchEngines[currentEngineIndex] || searchEngines[0];
+    currentSearchUrl = engine.url;
+    if (currentEngineIcon) currentEngineIcon.src = engine.icon;
+    if (currentEngineName) currentEngineName.textContent = engine.name;
+}
+
+function saveEngines() {
+    localStorage.setItem('apple_search_engines', JSON.stringify(searchEngines));
+    localStorage.setItem('apple_current_engine', currentEngineIndex.toString());
+}
+
 if (engineSelectorBtn && engineDropdown) {
+    // 首次载入渲染
+    renderEngineDropdown();
+    updateCurrentEngineUI();
+
     engineSelectorBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         engineDropdown.classList.toggle('active');
-    });
-
-    const dropdownItems = engineDropdown.querySelectorAll('.dropdown-item');
-    dropdownItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.stopPropagation();
-            // 移除其他激活状态
-            dropdownItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-            
-            // 更新图标、名称和查询地址
-            currentSearchUrl = item.dataset.url;
-            currentEngineIcon.src = item.dataset.icon;
-            
-            // 从下拉菜单项中提取名称 (span里的文字)并更新
-            const engineNameSpan = item.querySelector('span');
-            if (engineNameSpan && currentEngineName) {
-                currentEngineName.textContent = engineNameSpan.textContent;
-            }
-
-            // 收起下拉框并聚焦
-            engineDropdown.classList.remove('active');
-            searchInput.focus();
-        });
     });
 
     // 点击空白处关闭搜索引擎下拉框
@@ -942,6 +1080,72 @@ if (engineSelectorBtn && engineDropdown) {
         if (!engineSelectorBtn.contains(e.target)) {
             engineDropdown.classList.remove('active');
         }
+    });
+}
+
+// 引擎新增和编辑模态框逻辑
+const addEngineModal = document.getElementById('addEngineModal');
+const engineNameInput = document.getElementById('engineNameInput');
+const engineUrlInput = document.getElementById('engineUrlInput');
+const cancelEngineBtn = document.getElementById('cancelEngineBtn');
+const saveEngineBtn = document.getElementById('saveEngineBtn');
+let editingEngineIndex = null;
+
+function openEngineModal(editIndex = null) {
+    editingEngineIndex = editIndex;
+    const titleEl = addEngineModal.querySelector('h3');
+    if (titleEl) {
+        titleEl.textContent = editIndex !== null ? '编辑搜索引擎' : '添加搜索引擎';
+    }
+    
+    if (editIndex !== null && searchEngines[editIndex]) {
+        engineNameInput.value = searchEngines[editIndex].name;
+        engineUrlInput.value = searchEngines[editIndex].url;
+    } else {
+        engineNameInput.value = '';
+        engineUrlInput.value = '';
+    }
+    
+    addEngineModal.classList.add('active');
+    engineNameInput.focus();
+}
+
+function closeEngineModal() {
+    addEngineModal.classList.remove('active');
+    editingEngineIndex = null;
+}
+
+if (addEngineModal) {
+    cancelEngineBtn.addEventListener('click', closeEngineModal);
+    saveEngineBtn.addEventListener('click', () => {
+        const name = engineNameInput.value.trim();
+        const url = engineUrlInput.value.trim();
+        if (!name || !url) {
+            alert('名称和URL不能为空');
+            return;
+        }
+        
+        let icon = getFavicon(url) || 'icons/google.ico'; 
+        
+        if (editingEngineIndex !== null) {
+            // 编辑已有项，但这里判断 URL 如果修改了可能导致老图标丢失，如果想严格点可以判断：
+            const oldItem = searchEngines[editingEngineIndex];
+            icon = (oldItem.url === url) ? oldItem.icon : (getFavicon(url) || 'icons/google.ico');
+            searchEngines[editingEngineIndex] = { name, url, icon };
+        } else {
+            // 新增项
+            searchEngines.push({ name, url, icon });
+        }
+        
+        saveEngines();
+        updateCurrentEngineUI();
+        renderEngineDropdown();
+        closeEngineModal();
+        engineDropdown.classList.add('active');
+    });
+    
+    addEngineModal.addEventListener('click', (e) => {
+        if (e.target === addEngineModal) closeEngineModal();
     });
 }
 

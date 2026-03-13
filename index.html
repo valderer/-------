@@ -106,21 +106,7 @@
                             <span id="currentEngineName">Google</span>
                         </div>
                         <div class="custom-dropdown" id="engineDropdown">
-                            <div class="dropdown-item active" data-url="https://www.google.com/search?q=" data-icon="icons/google.ico">
-                                <img src="icons/google.ico" alt="Google"><span>Google</span>
-                            </div>
-                            <div class="dropdown-item" data-url="https://www.bing.com/search?q=" data-icon="icons/bing.ico">
-                                <img src="icons/bing.ico" alt="Bing"><span>Bing</span>
-                            </div>
-                            <div class="dropdown-item" data-url="https://www.baidu.com/s?wd=" data-icon="icons/baidu.ico">
-                                <img src="icons/baidu.ico" alt="Baidu"><span>Baidu</span>
-                            </div>
-                            <div class="dropdown-item" data-url="https://duckduckgo.com/?q=" data-icon="icons/duckduckgo.ico">
-                                <img src="icons/duckduckgo.ico" alt="DuckDuckGo"><span>DuckDuckGo</span>
-                            </div>
-                            <div class="dropdown-item" data-url="https://search.bilibili.com/all?keyword=" data-icon="icons/bilibili.ico">
-                                <img src="icons/bilibili.ico" alt="Bilibili"><span>Bilibili</span>
-                            </div>
+                            <!-- 搜索引擎将在此动态渲染 -->
                         </div>
                     </div>
                     <input type="text" id="searchInput" class="search-input" placeholder="">
@@ -156,6 +142,19 @@
                     <button id="cancelEditBtn">取消</button>
                     <button id="saveEditBtn">保存修改</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加搜索引擎模态框 -->
+    <div class="modal" id="addEngineModal">
+        <div class="modal-content">
+            <h3>添加搜索引擎</h3>
+            <input type="text" id="engineNameInput" placeholder="名称 (如: 百度)">
+            <input type="url" id="engineUrlInput" placeholder="搜索URL (如: https://www.baidu.com/s?wd=)">
+            <div class="modal-buttons">
+                <button id="cancelEngineBtn" style="color: var(--text-sec); background: transparent;">取消</button>
+                <button id="saveEngineBtn" style="background: var(--btn-primary); color: white;">保存</button>
             </div>
         </div>
     </div>

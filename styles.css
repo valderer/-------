@@ -113,7 +113,7 @@ body {
     display: flex;
     width: 80vw;
     /* max-width: 1080px; */
-    height: 95vh;
+    height: 90vh;
     border-radius: 14px;
     overflow: hidden;
     box-shadow: 0 32px 64px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -365,8 +365,8 @@ body {
     background-color: var(--hover-bg);
 }
 
-.engine-selector:active {
-    transform: scale(0.96); /* 点击时的微缩反馈 */
+.engine-selector:active:not(:has(.custom-dropdown.active)) {
+    transform: scale(0.96); /* 点击时的微缩反馈，同时避免下拉菜单展开时因点击产生偏移导致失焦点按失败 */
 }
 
 .engine-selector::after {
@@ -410,7 +410,7 @@ body {
 /* 自定义下拉菜单面板 */
 .custom-dropdown {
     position: absolute;
-    top: 160%; left: -5px;
+    top: 160%; left: 0px;
     width: 150px;
     background: var(--modal-bg);
     backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
@@ -457,6 +457,46 @@ body {
     margin-right: 10px;
     border-radius: 4px;
     box-shadow: none;
+}
+
+.engine-delete-btn {
+    margin-left: auto;
+    color: #ff3b30;
+    font-size: 14px;
+    padding: 0 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: none;
+}
+
+body.edit-mode .engine-delete-btn {
+    display: block;
+}
+
+.dropdown-item:hover .engine-delete-btn {
+    opacity: 1;
+}
+
+.dropdown-add-btn {
+    display: none;
+    justify-content: center;
+    color: var(--btn-primary);
+    font-weight: 600;
+    padding: 8px 10px;
+    border-top: 1px solid var(--panel-border);
+    margin-top: 4px;
+    cursor: pointer;
+}
+
+body.edit-mode .dropdown-add-btn {
+    display: flex;
+}
+.dropdown-add-btn:hover { background: var(--hover-bg); }
+
+/* 支持搜索引擎拖动 */
+.dropdown-item.dragging {
+    opacity: 0.5;
+    background: var(--active-bg);
 }
 
 .search-input {
