@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "桌面起始页",
+  "version": "1.0",
+  "description": "一个像手机桌面一样的新标签页，用于存放常用网站",
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "permissions": [
+    "bookmarks",
+    "favicon"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "icons": {
+    "128": "icon.png"
+  }
+}
